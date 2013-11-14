@@ -6,12 +6,14 @@ module Mailgun
     # * Procotol - http or https [default to https]
     # * API key and version
     # * Test mode - if enabled, doesn't actually send emails (see http://documentation.mailgun.net/user_manual.html#sending-in-test-mode)
+    # * Domain - domain to use
     def initialize(options)
       Mailgun.mailgun_host    = options.fetch(:mailgun_host)    {"api.mailgun.net"}
       Mailgun.protocol        = options.fetch(:protocol)        { "https"  }
       Mailgun.api_version     = options.fetch(:api_version)     { "v2"  }
       Mailgun.test_mode       = options.fetch(:test_mode)       { false }
       Mailgun.api_key         = options.fetch(:api_key)         { raise ArgumentError.new(":api_key is a required argument to initialize Mailgun") if Mailgun.api_key.nil?}
+      Mailgun.domain          = options.fetch(:domain)          { nil }
     end
 
     # Returns the base url used in all Mailgun API calls
@@ -27,13 +29,21 @@ module Mailgun
     def messages(domain = Mailgun.domain)
       @messages ||= Mailgun::Message.new(self, domain)
     end
-    
+
     def routes
       @routes ||= Mailgun::Route.new(self)
     end
-    
+
     def bounces(domain = Mailgun.domain)
       Mailgun::Bounce.new(self, domain)
+    end
+
+    def domains
+      Mailgun::Domain.new(self)
+    end
+
+    def events(domain = Mailgun.domain)
+      Mailgun::Event.new(self, domain)
     end
     
     def unsubscribes(domain = Mailgun.domain)

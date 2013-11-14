@@ -15,15 +15,16 @@ Mailgun exposes the following resources:
   * Bounces
   * Unsubscribes
   * Complaints
+  * Domain management
 
-Patches are welcome (and easy!). 
+Patches are welcome (and easy!).
 
 ## Sending mail using ActionMailer
 
 If you simply want to send mail using Mailgun, just set the smtp settings in the Rails application like the following. Replace wherever necessary in the following snippet :)
 ```ruby
 ActionMailer::Base.smtp_settings = {
-  :port           => 587, 
+  :port           => 587,
   :address        => 'smtp.mailgun.org',
   :user_name      => 'postmaster@your.mailgun.domain',
   :password       => 'mailgun-smtp-password',
@@ -151,9 +152,9 @@ parameters = {
 # Update a route via its id
 # (all keys are optional)
 @mailgun.routes.update "4e97c1b2ba8a48567f007fb6", {
-     :priority => 2,
-     :filter   => [:match_header, :subject, "*.support"],
-     :actions  => [[:forward, "http://new-site.com/incoming-emails"]]
+     :priority   => 2,
+     :expression => [:match_header, :subject, "*.support"],
+     :actions    => [[:forward, "http://new-site.com/incoming-emails"]]
      }
 
 # Destroy a route via its id
@@ -164,6 +165,58 @@ Supported route filters are: `:match_header`, `:match_recipient`, and `:catch_al
 
 Supported route actions are: `:forward`, and `:stop`
 
+#### Events
+```ruby
+event = @mailgun.events.list
+
+# List last events (100 limit)
+event.items
+
+# List next page events
+event.next.items if event.next?
+
+# List prev page events
+event.prev.items if event.prev?
+
+# Get all events
+all_events = event.items
+while event.next?
+  event = event.next
+  all_events += events.items
+end
+
+# Use filters
+event = @mailgun.events.list(
+  event: :bounced,
+  from: 'your@email.com',
+  limit: 100,
+  begin: Time.zone.now - 3.day,
+  end: Time.zone.now - 2.day,
+  ascending: true
+)
+event.items
+
+```
+
+Supported list filter are: `:event`, `:list`, `:attachment`, `:from`, `:subject`, `:to`, `:from`, `:size`, `:recipient`
+
+Supported list options are: `:limit`, `:begin`, `:end`, `:ascending`
+
+
+#### Domains
+```ruby
+# Add a domain
+@mailgun.domains.create "example.com"
+
+# List all domains that belong to the account
+@mailgun.domains.list
+
+# Get info for a domain
+@mailgun.domains.find "example.com"
+
+# Remove a domain
+@mailbox.domains.delete "example.com"
+```
 
 ## Making Your Changes
 
@@ -180,9 +233,10 @@ Supported route actions are: `:forward`, and `:stop`
   * Submit your change as a Pull Request and update the GitHub issue to let us know it is ready for review.
 
 
+
+
 ## TODO
 
-  * Mailgun() is overwriting api key. api key is not persisting
   * Add skip and limit functionality
   * Distinguish failed in logs
   * Distinguish delivered in logs
@@ -191,16 +245,17 @@ Supported route actions are: `:forward`, and `:stop`
   * Campaign?
 
 
+## Maintainer
+
+Akash Manohar / [@HashNuke](http://github.com/HashNuke)
+
+
 ## Authors
 
-* Akash Manohar J ([@HashNuke](http://github.com/HashNuke))
-* Sean Grove ([@sgrove](http://github.com/sgrove))
+* Akash Manohar / [@HashNuke](http://github.com/HashNuke)
+* Sean Grove / [@sgrove](http://github.com/sgrove)
 
-## Contrubutions
-
-* Yomi Colledge ([@baphled](http://github.com/baphled))
-* Scott Carleton ([@scotterc](http://github.com/scotterc)) - new functionality and improvements
-* Alan deLevie ([@adelevie](http://github.com/adelevie)) - Sending email
+See CONTRIBUTORS.md file for contributor credits.
 
 ## License
 
